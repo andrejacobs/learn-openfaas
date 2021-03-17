@@ -1,0 +1,10 @@
+version: 1.0
+provider:
+  name: openfaas
+  gateway: http://192.168.64.4:9999
+functions:
+  legodb:
+    lang: python3-http
+    handler: ./legodb
+    image: andrejacobs42/legodb:latest
+
