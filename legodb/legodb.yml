@@ -7,4 +7,10 @@ functions:
     lang: python3-http
     handler: ./legodb
     image: andrejacobs42/legodb:latest
-
+    environment:
+      database-name: openfaasdb
+      database-port: 3306
+    secrets:
+      - database-host
+      - database-user
+      - database-password

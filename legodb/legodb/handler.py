@@ -1,4 +1,6 @@
+import os
 import json
+import mariadb
 
 # GET /legosets : Returns the list of lego sets
 # POST /legoset : Add a new lego set to the database
@@ -20,14 +22,47 @@ def handle(event, context):
     return response
 
 
+def load_secret(name):
+    filepath = os.path.join('/var/openfaas/secrets/', name)
+    with open(filepath) as f:
+        secret = f.read()
+    return secret
+
+
+def database_connection():
+    host = load_secret('database-host')
+    user = load_secret('database-user')
+    password = load_secret('database-password')
+    database_name = os.environ.get('database-name')
+    database_port = int(os.environ.get('database-port', '3306'))
+
+    try:
+        connection = mariadb.connect(
+            user=user,
+            password=password,
+            host=host,
+            port=database_port,
+            database=database_name
+        )
+        return connection
+    except mariadb.Error as error:
+        print(f"Error: {error}")
+        return None
+
+
 def get_list_of_legosets():
-    set1 = {'LegoID': 21322,
-        'Description': 'Pirates of Barracuda Bay', 
-        'ProductURL':'',
-        'ImageURL': ''
-        }
-    return {"sets": [set1]}
-    
+    try:
+        connection = database_connection()
+        cursor = connection.cursor()
+        cursor.execute("SELECT LegoID, Description FROM legosets")
+        result = []
+        for legoID, description in cursor:
+            result.append({ "legoID": legoID, "description": description})
+        return {"sets": result}
+    except mariadb.Error as error:
+        print(f"Error{error}")
+        return {"error": f"{error}"}
+
 
 def add_new_legoset(body):
     response = None
