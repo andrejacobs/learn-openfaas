@@ -26,3 +26,17 @@ def database_session(host, port, user, password, schema):
 def get_all_legosets(session):
     legosets = session.query(LegoSet).all()
     return legosets
+
+
+def create_legoset(json):
+    legoID = json.get('legoID', None)
+    if legoID is None:
+        return None
+    description = json.get('description', None)
+    if description is None:
+        return None
+    productURL = json.get('productURL', None)
+    imageURL = json.get('imageURL', None)
+
+    legoset = LegoSet(legoID=legoID, description=description, productURL=productURL, imageURL=imageURL)
+    return legoset

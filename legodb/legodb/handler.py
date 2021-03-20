@@ -1,6 +1,6 @@
 import os
 import json
-from .models import LegoSet, database_session, get_all_legosets
+from .models import LegoSet, database_session, get_all_legosets, create_legoset
 
 # GET /legosets : Returns the list of lego sets
 # POST /legoset : Add a new lego set to the database
@@ -61,10 +61,21 @@ def add_new_legoset(body):
     response = None
     try:
         inputJSON = json.loads(body.decode('utf8').replace("'", '"'))
-        response = {
-            'statusCode': 200,
-            'body': {'received': inputJSON},
-            'headers': {'Content-Type': 'application/json'}
+        legoset = create_legoset(inputJSON)
+        if legoset is None:
+            raise ValueError()
+        else:
+            session = create_database_session()
+            session.add(legoset)
+            session.commit()
+            session.refresh(legoset)
+            newID = legoset.id
+            session.close()
+
+            response = {
+                'statusCode': 200,
+                'body': {'pkID': newID},
+                'headers': {'Content-Type': 'application/json'}
         }
     except ValueError:
         response = {
