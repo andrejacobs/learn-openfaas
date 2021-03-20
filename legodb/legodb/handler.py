@@ -1,6 +1,6 @@
 import os
 import json
-import mariadb
+from .models import LegoSet, database_session, get_all_legosets
 
 # GET /legosets : Returns the list of lego sets
 # POST /legoset : Add a new lego set to the database
@@ -29,39 +29,32 @@ def load_secret(name):
     return secret
 
 
-def database_connection():
+def create_database_session():
     host = load_secret('database-host')
     user = load_secret('database-user')
     password = load_secret('database-password')
-    database_name = os.environ.get('database-name')
-    database_port = int(os.environ.get('database-port', '3306'))
+    schema = os.environ.get('database-name')
+    port = int(os.environ.get('database-port', '3306'))
 
-    try:
-        connection = mariadb.connect(
-            user=user,
-            password=password,
-            host=host,
-            port=database_port,
-            database=database_name
-        )
-        return connection
-    except mariadb.Error as error:
-        print(f"Error: {error}")
-        return None
+    session = database_session(host, port, user, password, schema)
+    return session
 
 
 def get_list_of_legosets():
-    try:
-        connection = database_connection()
-        cursor = connection.cursor()
-        cursor.execute("SELECT LegoID, Description FROM legosets")
-        result = []
-        for legoID, description in cursor:
-            result.append({ "legoID": legoID, "description": description})
-        return {"sets": result}
-    except mariadb.Error as error:
-        print(f"Error{error}")
-        return {"error": f"{error}"}
+    session = create_database_session()
+    legosets = get_all_legosets(session)
+    result = []
+
+    for legoset in legosets:
+        result.append({
+            'legoID': legoset.legoID,
+            'description': legoset.description,
+            'productURL': legoset.productURL,
+            'imageURL': legoset.imageURL
+        })
+
+    session.close()
+    return {"sets": result}
 
 
 def add_new_legoset(body):
