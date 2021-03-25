@@ -1,6 +1,7 @@
 import os
 import json
-from .models import LegoSet, database_session, get_all_legosets, create_legoset
+from .models import LegoSet, get_all_legosets, create_legoset
+from .utils import create_database_session
 
 # GET /legosets : Returns the list of lego sets
 # POST /legoset : Add a new lego set to the database
@@ -20,24 +21,6 @@ def handle(event, context):
             response = add_new_legoset(event.body)
     
     return response
-
-
-def load_secret(name):
-    filepath = os.path.join('/var/openfaas/secrets/', name)
-    with open(filepath) as f:
-        secret = f.read().rstrip('\n')
-    return secret
-
-
-def create_database_session():
-    host = load_secret('database-host')
-    user = load_secret('database-user')
-    password = load_secret('database-password')
-    schema = os.environ.get('database-name', 'openfaasdb')
-    port = int(os.environ.get('database-port', '3306'))
-
-    session = database_session(host, port, user, password, schema)
-    return session
 
 
 def get_list_of_legosets():
