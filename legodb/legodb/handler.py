@@ -1,6 +1,6 @@
 import os
 import json
-from .models import LegoSet, get_all_legosets, create_legoset
+from .models import LegoSet, get_all_legosets, create_legoset, get_legosets_that_need_an_image_download
 from .utils import create_database_session
 
 # GET /legosets : Returns the list of lego sets
@@ -19,6 +19,9 @@ def handle(event, context):
     elif event.method == 'POST':
         if event.path == '/legoset':
             response = add_new_legoset(event.body)
+    elif event.method == 'PUT':
+        if event.path == '/legosets-download-images':
+            response = download_legoset_images()
     
     return response
 
@@ -67,3 +70,18 @@ def add_new_legoset(body):
             'headers': {'Content-Type': 'application/json'}
          }
     return response
+
+
+def download_legoset_images():
+    session = create_database_session()
+    legosets = get_legosets_that_need_an_image_download(session, limit=2)
+    result = []
+
+    for legoset in legosets:
+        result.append({
+            'legoID': legoset.legoID,
+            'imageURL': legoset.imageURL
+        })
+
+    session.close()
+    return {"sets": result}

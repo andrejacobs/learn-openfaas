@@ -1,5 +1,6 @@
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import and_
 
 
 Base = declarative_base()
@@ -12,10 +13,21 @@ class LegoSet(Base):
     description = Column('Description',String(200))
     productURL = Column('ProductURL',String(4096))
     imageURL = Column('ImageURL',String(4096))
+    imagePath = Column('ImagePath',String(4096))
 
 
 def get_all_legosets(session):
     legosets = session.query(LegoSet).all()
+    return legosets
+
+
+def get_legosets_that_need_an_image_download(session, limit=10):
+    legosets = session.query(LegoSet).filter(
+        and_(
+            LegoSet.imageURL.is_not(None),
+            LegoSet.imagePath.is_(None)
+        )
+    ).limit(limit)
     return legosets
 
 
