@@ -25,7 +25,7 @@ def handle(event, context):
 def load_secret(name):
     filepath = os.path.join('/var/openfaas/secrets/', name)
     with open(filepath) as f:
-        secret = f.read()
+        secret = f.read().rstrip('\n')
     return secret
 
 
@@ -33,7 +33,7 @@ def create_database_session():
     host = load_secret('database-host')
     user = load_secret('database-user')
     password = load_secret('database-password')
-    schema = os.environ.get('database-name')
+    schema = os.environ.get('database-name', 'openfaasdb')
     port = int(os.environ.get('database-port', '3306'))
 
     session = database_session(host, port, user, password, schema)
