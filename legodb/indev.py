@@ -1,5 +1,7 @@
 from legodb.handler import handle
 from pprint import pprint
+from redis import Redis
+import rq
 
 class Event:
     def __init__(self):
@@ -14,19 +16,24 @@ class Context:
         self.hostname = 'localhost'
 
 if __name__ == "__main__":
-    event = Event()
-    context = Context()
-    response = handle(event, context)
-    print(f'{event.path}')
-    pprint(response)
-    print('')
+    # Test RQ and Redis is working
+    queue = rq.Queue('johnny5', connection=Redis.from_url('redis://192.168.64.4:9988/0'))
+    job = queue.enqueue('legodb.tasks.example_task', 42)
+    print(job.get_id())
 
-    event.method = 'PUT'
-    event.path = '/legosets-download-images'
-    response = handle(event, context)
-    print(f'{event.path}')
-    pprint(response)
-    print('')
+    # event = Event()
+    # context = Context()
+    # response = handle(event, context)
+    # print(f'{event.path}')
+    # pprint(response)
+    # print('')
+
+    # event.method = 'PUT'
+    # event.path = '/legosets-download-images'
+    # response = handle(event, context)
+    # print(f'{event.path}')
+    # pprint(response)
+    # print('')
 
     # # Test the query for getting the next batch of images to download
     # print('Sets that need an image:')
@@ -42,5 +49,4 @@ if __name__ == "__main__":
     #         'imageURL': legoset.imageURL,
     #         'imagePath': legoset.imagePath
     #     })
-
     # session.close()
