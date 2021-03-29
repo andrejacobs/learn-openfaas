@@ -1,2 +1,6 @@
-template
+template/*
 build
+# Track changes made to the template's template.yml
+!template/python3-http
+template/python3-http/*
+!template/python3-http/template.yml
