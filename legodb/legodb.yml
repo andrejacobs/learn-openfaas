@@ -10,7 +10,12 @@ functions:
     environment:
       database-name: openfaasdb
       database-port: 3306
+      queue-name: everything-is-awesome
+      redis-url: redis://10.62.0.1:9988/0
+      email-smtp: 10.62.0.1
+      download-limit: 2
     secrets:
       - database-host
       - database-user
       - database-password
+      - notification-email

@@ -2,6 +2,7 @@ import os
 import json
 from .models import LegoSet, get_all_legosets, create_legoset, get_legosets_that_need_an_image_download
 from .utils import create_database_session
+from .tasks import task_queue, enqueue_task
 
 # GET /legosets : Returns the list of lego sets
 # POST /legoset : Add a new lego set to the database
@@ -74,14 +75,18 @@ def add_new_legoset(body):
 
 def download_legoset_images():
     session = create_database_session()
-    legosets = get_legosets_that_need_an_image_download(session, limit=2)
+    limit = os.environ.get('download-limit', 10)
+    legosets = get_legosets_that_need_an_image_download(session, limit=limit)
     result = []
+
+    queue = task_queue()
 
     for legoset in legosets:
         result.append({
             'legoID': legoset.legoID,
             'imageURL': legoset.imageURL
         })
+        enqueue_task(queue, 'legodb.tasks.download_legoset_image', legoset.id, legoset.imageURL)
 
     session.close()
     return {"sets": result}
